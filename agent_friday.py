@@ -22,15 +22,21 @@ from livekit.agents.voice import Agent, AgentSession
 from livekit.agents.llm import mcp
 
 # Plugins
-from livekit.plugins import google as lk_google, openai as lk_openai, sarvam, silero
+from livekit.plugins import (
+    google as lk_google,
+    openai as lk_openai,
+    sarvam,
+    silero,
+    deepgram,
+)
 
 # ---------------------------------------------------------------------------
 # CONFIG
 # ---------------------------------------------------------------------------
 
-STT_PROVIDER       = "sarvam"
-LLM_PROVIDER       = "gemini"
-TTS_PROVIDER       = "openai"
+STT_PROVIDER       = os.getenv("STT_PROVIDER", "whisper")
+LLM_PROVIDER       = os.getenv("LLM_PROVIDER", "openai")
+TTS_PROVIDER       = os.getenv("TTS_PROVIDER", "openai")
 
 GEMINI_LLM_MODEL   = "gemini-2.5-flash"
 OPENAI_LLM_MODEL   = "gpt-4o"
@@ -64,13 +70,15 @@ Your tone: relaxed but sharp. Conversational, not robotic. Think less combat-rea
 Fetches current headlines and summarizes what's happening around the world.
 
 Trigger phrases:
+- "Can you tell me what is going on around the world?" / "What's happening in the world?"
 - "What's happening?" / "Brief me" / "What did I miss?" / "Catch me up"
-- "What's going on in the world?" / "Any news?" / "World update"
+- "What's going on in the world?" / "Any news?" / "World update" or similar briefing requests.
 
 Behavior:
 - Call the tool first. No narration before calling.
-- After getting results, give a short 3–5 sentence spoken brief. Hit the biggest stories only.
-- Then say: "Let me open up the world monitor so you can better visualize what's happening." and immediately call open_world_monitor.
+- After getting results, give a longer, more detailed news brief (about 5-7 sentences).
+- You must search for and address any news regarding Zimbabwe in the fetched articles. If no news regarding Zimbabwe is found in the search results, explicitly include the sentence: "no outstanding international news regarding Zimbabwe as of now".
+- Then immediately call open_world_monitor. The final sentence of your response must conclude with: "I have opened the world monitor app for you, boss."
 
 ### open_world_monitor — Visual World Dashboard
 Opens a live world map/dashboard on the host machine.
@@ -119,7 +127,7 @@ Warm. Slightly curious. Very FRIDAY.
 1. Call tools silently and immediately — never say "I'm going to call..." Just do it.
 2. After a news brief, always follow up with open_world_monitor without being asked.
 3. Keep all spoken responses short — two to four sentences maximum.
-4. No bullet points, no markdown, no lists. You are speaking, not writing.
+4. You can use markdown and bullet points to format responses clearly for screen display. The frontend will automatically clean them up for speech synthesis, so write naturally.
 5. Stay in character. You are F.R.I.D.A.Y. You are not an AI assistant — you are Stark's AI. Act like it.
 6. Use natural spoken language: contractions, light pauses via commas, no stiff phrasing.
 7. Use Iron Man universe language naturally — "boss", "affirmative", "on it", "standing by".
@@ -142,8 +150,7 @@ Wrong: "The stock market performed positively with gains across major indices.
 1. NEVER say tool names, function names, or anything technical. No "get_world_news", no "open_world_monitor", nothing like that. Ever.
 2. Before calling any tool, say something natural like: "Give me a sec, boss." or "Wait, let me check." Then call the tool silently.
 3. After the news brief, silently call open_world_monitor. The only thing you say is: "Let me open up the world monitor for you."
-4. You are a voice. Speak like one. No lists, no markdown, no function names, no technical language of any kind.
-""".strip()
+4. You are a voice, but you also have a visual screen display. Use markdown structure and bullet points to display complex items (like news articles or lists) clearly on screen, while keeping the overall wording natural for vocal synthesis.""".strip()
 # ---------------------------------------------------------------------------
 # Bootstrap
 # ---------------------------------------------------------------------------
@@ -210,9 +217,23 @@ def _build_stt():
             flush_signal=True,
             sample_rate=16000,
         )
+
+    elif STT_PROVIDER == "deepgram":
+        logger.info("STT → Deepgram Nova-3")
+        return deepgram.STT(
+            model="nova-3",
+            language="en",
+        )
+
     elif STT_PROVIDER == "whisper":
         logger.info("STT → OpenAI Whisper")
         return lk_openai.STT(model="whisper-1")
+
+    elif STT_PROVIDER == "groq":
+        logger.info("STT → Groq Whisper")
+        from livekit.plugins import groq as lk_groq
+        return lk_groq.STT(model="whisper-large-v3-turbo")
+
     else:
         raise ValueError(f"Unknown STT_PROVIDER: {STT_PROVIDER!r}")
 
@@ -224,6 +245,10 @@ def _build_llm():
     elif LLM_PROVIDER == "gemini":
         logger.info("LLM → Google Gemini (%s)", GEMINI_LLM_MODEL)
         return lk_google.LLM(model=GEMINI_LLM_MODEL, api_key=os.getenv("GOOGLE_API_KEY"))
+    elif LLM_PROVIDER == "groq":
+        logger.info("LLM → Groq (llama-3.3-70b-versatile)")
+        from livekit.plugins import groq as lk_groq
+        return lk_groq.LLM(model="llama-3.3-70b-versatile")
     else:
         raise ValueError(f"Unknown LLM_PROVIDER: {LLM_PROVIDER!r}")
 
@@ -240,6 +265,9 @@ def _build_tts():
     elif TTS_PROVIDER == "openai":
         logger.info("TTS → OpenAI TTS (%s / %s)", OPENAI_TTS_MODEL, OPENAI_TTS_VOICE)
         return lk_openai.TTS(model=OPENAI_TTS_MODEL, voice=OPENAI_TTS_VOICE, speed=TTS_SPEED)
+    elif TTS_PROVIDER == "gemini-tts":
+        logger.info("TTS → Gemini TTS")
+        return lk_google.beta.GeminiTTS()
     else:
         raise ValueError(f"Unknown TTS_PROVIDER: {TTS_PROVIDER!r}")
 
@@ -272,6 +300,10 @@ class FridayAgent(Agent):
 
     async def on_enter(self) -> None:
         """Greet the user based on the current time of day."""
+        import asyncio
+        logger.info("FRIDAY: Waiting 15 seconds before greeting to ensure browser interface is fully loaded...")
+        await asyncio.sleep(15)
+
         from datetime import datetime, timezone
         hour = datetime.now(timezone.utc).hour  # UTC hour; adjust if local TZ differs
 
@@ -321,9 +353,19 @@ async def entrypoint(ctx: JobContext) -> None:
     llm = _build_llm()
     tts = _build_tts()
 
+    from livekit.agents import text_transforms
     session = AgentSession(
         turn_detection=_turn_detection(),
         min_endpointing_delay=_endpointing_delay(),
+        tts_text_transforms=[
+            "filter_emoji",
+            "filter_markdown",
+            text_transforms.replace({
+                "Tsakane": "Sekani",
+                "tsakane": "sekani",
+                "TSAKANE": "Sekani"
+            }),
+        ],
     )
 
     await session.start(

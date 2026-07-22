@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F.R.I.D.A.Y. — Stark HUD Voice Client</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <i class="fa-solid fa-atom fa-spin" style="color: var(--neon-cyan); font-size: 22px;"></i>
+      <h1>F.R.I.D.A.Y. <span>// TSAKANE</span></h1>
+    </div>
+    <div class="system-status">
+      <span class="status-text" id="status-text">SYSTEM STANDBY</span>
+      <div class="status-dot" id="status-dot"></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Voice Control & Arc Reactor -->
+    <section class="hud-panel left-panel">
+      <div class="panel-header">
+        <span class="panel-title"><i class="fa-solid fa-microphone-lines"></i> Voice Core</span>
+        <span style="font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--neon-cyan);">V.CORE_v2.5</span>
+      </div>
+      <div class="panel-content">
+        <div class="reactor-container">
+          <div class="reactor-outer"></div>
+          <div class="reactor-inner-ring"></div>
+          <div class="reactor-core" id="reactor-core"></div>
+        </div>
+        
+        <div class="reactor-label" id="reactor-state-text">TAP TO ACTIVATE</div>
+
+        <button class="voice-btn" id="voice-toggle-btn">
+          <i class="fa-solid fa-microphone"></i> Start Listening
+        </button>
+
+        <div class="settings-section">
+          <div class="toggle-container" style="flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 8px;">
+            <span>Neural Model Core</span>
+            <select id="model-select" style="width: 100%; background: rgba(3, 8, 18, 0.6); border: 1px solid var(--panel-border); border-radius: 6px; padding: 8px 10px; color: #fff; outline: none; font-size: 12px; font-family: inherit; cursor: pointer; transition: border-color 0.3s ease;">
+              <option value="openai">OpenAI (GPT-4o)</option>
+              <option value="groq" selected>Groq (Llama 3.3)</option>
+              <option value="gemini">Gemini (3.5 Flash)</option>
+            </select>
+          </div>
+          <div class="toggle-container" style="flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 5px;">
+            <span>Vocal Processor Voice</span>
+            <select id="voice-select" style="width: 100%; background: rgba(3, 8, 18, 0.6); border: 1px solid var(--panel-border); border-radius: 6px; padding: 8px 10px; color: #fff; outline: none; font-size: 12px; font-family: inherit; cursor: pointer; transition: border-color 0.3s ease;"></select>
+          </div>
+          <div class="toggle-container">
+            <span>Voice Synthesis (Speak Back)</span>
+            <label class="switch">
+              <input type="checkbox" id="tts-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="toggle-container">
+            <span>Continuous Listening</span>
+            <label class="switch">
+              <input type="checkbox" id="continuous-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center Column: Chat Transcript -->
+    <section class="hud-panel center-panel">
+      <div class="panel-header">
+        <span class="panel-title"><i class="fa-solid fa-comments"></i> Neural Interface Link</span>
+        <span id="chat-tokens" style="font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--neon-gold);">SECURE_CONN_ACTIVE</span>
+      </div>
+      <div class="panel-content chat-container">
+        <div class="chat-history" id="chat-history">
+          <!-- Messages will be injected here -->
+          <div class="message friday">
+            <span class="msg-label">FRIDAY</span>
+            <div class="msg-bubble" id="friday-greeting">Greetings boss, you're up late at night today. What are you up to?</div>
+          </div>
+        </div>
+        
+        <form class="chat-input-area" id="chat-form">
+          <input type="text" id="chat-input" placeholder="Type a command for Friday..." autocomplete="off">
+          <button type="submit" class="send-btn" id="send-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right Column: System Tools & Diagnostics -->
+    <section class="hud-panel right-panel">
+      <div class="panel-header">
+        <span class="panel-title"><i class="fa-solid fa-terminal"></i> Systems Diagnostics Log</span>
+        <span style="font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--neon-cyan);">LIVE_FEED</span>
+      </div>
+      <div class="panel-content">
+        <div class="diagnostics-log" id="diagnostics-log">
+          <div class="log-entry info">
+            <span class="log-timestamp">[19:56:15]</span> Friday web client initialization successful.
+          </div>
+          <div class="log-entry info">
+            <span class="log-timestamp">[19:56:15]</span> Standby mode active. Waiting for boss instruction.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

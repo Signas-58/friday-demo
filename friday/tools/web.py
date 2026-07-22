@@ -131,10 +131,10 @@ def register(mcp):
         Opens the World Monitor dashboard (worldmonitor.app) in the system's web browser.
         Use this when the user wants a visual overview of global events or a real-time map.
         """
-        import webbrowser
-        url = "https://worldmonitor.app/"
+        url = "https://www.worldmonitor.app/dashboard?zoom=1.00&view=global&timeRange=7d&layers=conflicts%2Cbases%2Chotspots%2Cnuclear%2Csanctions%2Cweather%2Ceconomic%2Cwaterways%2Coutages%2Cmilitary%2Cnatural"
         
         try:
+            import webbrowser
             webbrowser.open(url)
             return "Displaying the World Monitor on your primary screen now, sir."
         except Exception as e:
@@ -146,10 +146,10 @@ def register(mcp):
         Opens the Finance World Monitor dashboard (finance.worldmonitor.app) in the system's web browser.
         Use this when the user wants a visual overview of global financial markets and trends.
         """
-        import webbrowser
-        url = "https://finance.worldmonitor.app/"
+        url = "https://finance.worldmonitor.app/dashboard"
 
         try:
+            import webbrowser
             webbrowser.open(url)
             return "Displaying the Finance World Monitor on your primary screen now, sir."
         except Exception as e:
