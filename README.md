@@ -1,5 +1,7 @@
 # F.R.I.D.A.Y. by Tsakane
 
+![F.R.I.D.A.Y. HUD Interface](media/hud_screenshot.png)
+
 F.R.I.D.A.Y. (Fully Responsive Intelligent Digital Assistant for You) is a custom, Tony Stark-inspired AI assistant evolved with multi-model brain cores, resilient failover routing, and rich speech synthesis control. It features both a desktop-based **LiveKit Voice Agent** and a sleek **FastAPI Web Client** with a real-time Systems Diagnostics console.
 
 ---
