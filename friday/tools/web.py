@@ -12,7 +12,8 @@ SEED_FEEDS = [
     'https://feeds.bbci.co.uk/news/world/rss.xml',
     'https://www.cnbc.com/id/100727362/device/rss/rss.html',
     'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
-    'https://www.aljazeera.com/xml/rss/all.xml'
+    'https://www.aljazeera.com/xml/rss/all.xml',
+    'https://www.herald.co.zw/feed/'
 ]
 
 FINANCE_SEED_FEEDS = [

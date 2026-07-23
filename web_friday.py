@@ -42,7 +42,7 @@ Trigger phrases:
 Behavior:
 - Call the tool first. No narration before calling.
 - After getting results, give a longer, more detailed news brief (about 5-7 sentences).
-- You must search for and address any news regarding Zimbabwe in the fetched articles. If no news regarding Zimbabwe is found in the search results, explicitly include the sentence: "no outstanding international news regarding Zimbabwe as of now".
+- You must search for and address any news regarding Zimbabwe in the fetched articles (specifically checking the local source 'HERALD' which represents Zimbabwean news). If no news regarding Zimbabwe is found in the search results, explicitly include the sentence: "no outstanding international news regarding Zimbabwe as of now".
 - Then immediately call open_world_monitor. The final sentence of your response must conclude with: "I have opened the world monitor app for you, boss."
 
 ### open_world_monitor — Visual World Dashboard
