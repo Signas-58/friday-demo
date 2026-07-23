@@ -53,7 +53,8 @@ async def fetch_and_parse_feed(client, url):
                 "link": link
             })
         return feed_items
-    except Exception:
+    except Exception as e:
+        print(f"Error fetching/parsing feed {url}: {e}")
         # If one feed fails, return an empty list so others can still succeed
         return []
 
@@ -82,8 +83,8 @@ def register(mcp):
 
         # 4. Format the final briefing
         report = ["### GLOBAL NEWS BRIEFING (LIVE)\n"]
-        # Limit to top 12 items so the AI doesn't get overwhelmed
-        for entry in all_articles[:12]:
+        # Limit to top 25 items so we don't truncate late-stage feeds (like HERALD)
+        for entry in all_articles[:25]:
             report.append(f"**[{entry['source']}]** {entry['title']}")
             report.append(f"{entry['summary']}")
             report.append(f"Link: {entry['link']}\n")
