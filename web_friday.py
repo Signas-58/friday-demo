@@ -276,6 +276,12 @@ async def chat(request: ChatRequest):
                 detail="Friday MCP Server is offline. Please start it using 'uv run friday' first."
             )
 
+        # Update the system prompt with the current local time dynamically
+        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        system_content = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]"
+        if messages and messages[0]["role"] == "system":
+            messages[0]["content"] = system_content
+
         # Add user message to history
         messages.append({"role": "user", "content": user_input})
         

@@ -283,8 +283,11 @@ class FridayAgent(Agent):
     """
 
     def __init__(self, stt, llm, tts) -> None:
+        from datetime import datetime
+        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        instructions = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]"
         super().__init__(
-            instructions=SYSTEM_PROMPT,
+            instructions=instructions,
             stt=stt,
             llm=llm,
             tts=tts,
@@ -304,8 +307,8 @@ class FridayAgent(Agent):
         logger.info("FRIDAY: Waiting 15 seconds before greeting to ensure browser interface is fully loaded...")
         await asyncio.sleep(15)
 
-        from datetime import datetime, timezone
-        hour = datetime.now(timezone.utc).hour  # UTC hour; adjust if local TZ differs
+        from datetime import datetime
+        hour = datetime.now().hour  # Local host system hour
 
         if hour >= 22 or hour < 4:
             greeting_instruction = (
