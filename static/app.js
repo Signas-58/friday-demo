@@ -234,6 +234,22 @@ async function sendToBackend(message) {
     return;
   }
 
+  // Intercept world news requests to provide immediate verbal feedback while loading
+  const cleanMsg = message.toLowerCase().trim();
+  const isWorldNewsQuery = 
+    cleanMsg.includes("what's happening in the world") ||
+    cleanMsg.includes("what's going on around the world") ||
+    cleanMsg.includes("what is going on around the world") ||
+    cleanMsg.includes("what's going on in the world") ||
+    cleanMsg.includes("what's happening around the world") ||
+    cleanMsg.includes("what happening in the world") ||
+    (cleanMsg.includes("brief") && (cleanMsg.includes("world") || cleanMsg.includes("global"))) ||
+    (cleanMsg.includes("news") && (cleanMsg.includes("world") || cleanMsg.includes("global")));
+
+  if (isWorldNewsQuery) {
+    speakText("Give me a sec boss, let me check.");
+  }
+
   updateUIState(STATE_THINKING);
   logToDiagnostics('info', `Sending neural request: "${message}"`);
   
