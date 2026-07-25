@@ -15,6 +15,8 @@ from openai import AsyncOpenAI
 from mcp.client.session import ClientSession
 from mcp.client.sse import sse_client
 
+from friday.database import init_db, save_message, get_chat_history, clear_chat_history, get_memories_prompt
+
 load_dotenv()
 
 # System prompt from agent_friday.py for authentic F.R.I.D.A.Y. behavior
@@ -132,11 +134,7 @@ def get_greeting() -> str:
     else:  # 17–22
         return "Good evening, boss. What are you up to tonight?"
 
-# In-memory message store for single user
-messages = [
-    {"role": "system", "content": SYSTEM_PROMPT.strip()},
-    {"role": "assistant", "content": get_greeting()}
-]
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -145,6 +143,7 @@ class ChatRequest(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manages the startup and shutdown lifespan of the application."""
+    init_db()
     app.state.clients = {}
     
     # 1. Initialize OpenAI client if key is configured
@@ -261,7 +260,6 @@ app.add_middleware(
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
-    global messages
     user_input = request.message
     provider = request.provider
     
@@ -276,14 +274,20 @@ async def chat(request: ChatRequest):
                 detail="Friday MCP Server is offline. Please start it using 'uv run friday' first."
             )
 
-        # Update the system prompt with the current local time dynamically
+        # 1. Save user message to database
+        save_message("user", user_input)
+        
+        # 2. Build message context from database history (limit to last 30 to optimize token usage)
+        db_messages = get_chat_history(limit=30)
+        
+        # 3. Dynamic system prompt compilation with local time and memories
         current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        system_content = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]"
-        if messages and messages[0]["role"] == "system":
-            messages[0]["content"] = system_content
-
-        # Add user message to history
-        messages.append({"role": "user", "content": user_input})
+        memories_prompt = get_memories_prompt()
+        system_content = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]{memories_prompt}"
+        
+        # Assemble message array for client request
+        llm_messages = [{"role": "system", "content": system_content}]
+        llm_messages.extend(db_messages)
         
         # Collect execution logs to send back to the frontend
         logs = []
@@ -308,7 +312,7 @@ async def chat(request: ChatRequest):
                 try:
                     response = await current_client.chat.completions.create(
                         model=current_model,
-                        messages=messages,
+                        messages=llm_messages,
                         tools=app.state.openai_tools if app.state.openai_tools else None,
                         tool_choice="auto" if app.state.openai_tools else None
                     )
@@ -336,7 +340,7 @@ async def chat(request: ChatRequest):
             tool_calls = response_message.tool_calls
             
             if tool_calls:
-                messages.append(response_message)
+                llm_messages.append(response_message)
                 
                 for tool_call in tool_calls:
                     tool_name = tool_call.function.name
@@ -371,24 +375,26 @@ async def chat(request: ChatRequest):
                         result_str = f"Error executing tool: {str(err)}"
                         logs.append({"type": "error", "message": f"Tool '{tool_name}' failed: {str(err)}"})
                     
-                    messages.append({
+                    llm_messages.append({
                         "role": "tool",
                         "tool_call_id": tool_call.id,
                         "name": tool_name,
                         "content": result_str
                     })
-                # Continue the loop to send tool results back to LLM
+                # Continue loop to send tool results back to LLM
                 continue
             else:
                 # Final text answer
                 final_text = response_message.content
-                messages.append({"role": "assistant", "content": final_text})
+                
+                # Save assistant response to database history
+                save_message("assistant", final_text)
+                
                 return {
                     "response": final_text,
                     "logs": logs
                 }
     except HTTPException as he:
-        # Re-raise HTTPExceptions as-is
         raise he
     except Exception as e:
         import traceback
@@ -396,14 +402,21 @@ async def chat(request: ChatRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+@app.get("/api/history")
+async def history():
+    history_msgs = get_chat_history(limit=30)
+    if not history_msgs:
+        # Generate and save initial greeting
+        greeting = get_greeting()
+        save_message("assistant", greeting)
+        history_msgs = [{"role": "assistant", "content": greeting}]
+    return {"history": history_msgs}
+
 @app.post("/api/reset")
 async def reset():
-    global messages
+    clear_chat_history()
     greeting = get_greeting()
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT.strip()},
-        {"role": "assistant", "content": greeting}
-    ]
+    save_message("assistant", greeting)
     return {"greeting": greeting}
 
 # Serve static web frontend

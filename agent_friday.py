@@ -284,8 +284,10 @@ class FridayAgent(Agent):
 
     def __init__(self, stt, llm, tts) -> None:
         from datetime import datetime
+        from friday.database import get_memories_prompt
         current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        instructions = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]"
+        memories_prompt = get_memories_prompt()
+        instructions = f"{SYSTEM_PROMPT.strip()}\n\n[System Info: Current local time is {current_time_str}]{memories_prompt}"
         super().__init__(
             instructions=instructions,
             stt=stt,

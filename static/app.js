@@ -478,15 +478,35 @@ function populateVoiceList() {
 
 async function initializeGreeting() {
   try {
-    const response = await fetch('/api/reset', { method: 'POST' });
+    const response = await fetch('/api/history');
     if (response.ok) {
       const data = await response.json();
-      greetingText = data.greeting;
-      document.getElementById('friday-greeting').innerText = greetingText;
-      logToDiagnostics('info', `Neural link synchronized. Dynamic greeting: "${greetingText}"`);
+      const history = data.history;
+      
+      // Clear current placeholder chat history
+      chatHistory.innerHTML = '';
+      
+      // Render all messages from database history
+      history.forEach(msg => {
+        if (msg.role === 'user') {
+          addMessage('Boss', msg.content);
+        } else if (msg.role === 'assistant') {
+          addMessage('Friday', msg.content);
+        }
+      });
+      
+      if (history.length === 1 && history[0].role === 'assistant') {
+        greetingText = history[0].content;
+        greetingSpoken = false;
+      } else {
+        // Conversation has already progressed, do not repeat greeting on start listening
+        greetingSpoken = true;
+      }
+      
+      logToDiagnostics('info', `Neural link synchronized. Chat history restored with ${history.length} messages.`);
     }
   } catch (e) {
-    logToDiagnostics('error', `Failed to sync greeting with backend: ${e.message}`);
+    logToDiagnostics('error', `Failed to sync history with backend: ${e.message}`);
   }
 }
 
