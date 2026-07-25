@@ -476,7 +476,7 @@ function populateVoiceList() {
   });
 }
 
-async function initializeGreeting() {
+async function initializeGreeting(retries = 5, delay = 1000) {
   try {
     const response = await fetch('/api/history');
     if (response.ok) {
@@ -504,9 +504,16 @@ async function initializeGreeting() {
       }
       
       logToDiagnostics('info', `Neural link synchronized. Chat history restored with ${history.length} messages.`);
+    } else {
+      throw new Error(`Server returned status ${response.status}`);
     }
   } catch (e) {
-    logToDiagnostics('error', `Failed to sync history with backend: ${e.message}`);
+    if (retries > 0) {
+      logToDiagnostics('info', `Connection pending. Retrying link synchronization in ${delay}ms... (${retries} attempts left)`);
+      setTimeout(() => initializeGreeting(retries - 1, delay), delay);
+    } else {
+      logToDiagnostics('error', `Failed to sync history with backend: ${e.message}`);
+    }
   }
 }
 
