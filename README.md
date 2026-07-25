@@ -22,11 +22,23 @@ Custom speech synthesis rules ensure F.R.I.D.A.Y. speaks correctly:
 *   **Spelling:** Displayed as **Tsakane** in all chat bubbles and transcriptions.
 *   **Pronunciation:** Vocalized phonetically as **"Sekani"** across both the Web client's speech synthesis and the LiveKit streaming audio pipeline.
 
-### 🌐 World Monitor Integration
+### 🌐 World Monitor & Zimbabwean News Integration
 F.R.I.D.A.Y. is connected to a live global intelligence system. Asking *"What's happening in the world?"* or *"Can you tell me what is going on around the world?"* triggers:
-1.  A longer, more detailed news brief (5–7 sentences), specifically checking for news regarding **Zimbabwe** (falling back to *"no outstanding international news regarding Zimbabwe as of now"* if none is found).
+1.  A longer, more detailed news brief (5–7 sentences), specifically checking for local news regarding **Zimbabwe** via **The Herald Zimbabwe** RSS feed (falling back to *"no outstanding international news regarding Zimbabwe as of now"* if none is found).
 2.  An immediate browser launch opening the **World Monitor** app configured directly with pre-selected layer filters (Conflicts, Bases, Hotspots, Nuclear, Sanctions, Weather, etc.).
 3.  A conclusion cue: *"I have opened the world monitor app for you, boss"* while she continues speaking in the background.
+
+### 💾 Persistent SQLite Memory
+All chat history and long-term profile preferences are backed by a local SQLite instance (`friday.db`):
+*   **Chat Restoration:** Reloading Microsoft Edge automatically fetches past conversation history via `GET /api/history` and restores message bubbles on screen.
+*   **Fact Memorization:** Exposes tools for F.R.I.D.A.Y. to explicitly remember facts about you (e.g., *"remember that my favorite language is Python"*). Memories are injected dynamically into the system instructions at session startup.
+
+### 🖥️ Desktop Automation & Systems Diagnostics
+F.R.I.D.A.Y. acts as a system administrator dashboard:
+*   **Application Launcher:** Asynchronously starts local applications (Notepad, Calculator, Paint, Edge, etc.) in the background without blocking the backend.
+*   **Safe File Finder:** Case-insensitive, recursion-depth-limited filesystem search to find project files without lagging.
+*   **Task List Analyzer:** Parses running processes and returns a table of the heaviest memory-hogging tasks currently active.
+*   **Cyber Security Netstat Scan:** Scans system sockets and ports, outputting active `LISTENING` and `ESTABLISHED` TCP/UDP connections.
 
 ---
 
@@ -39,10 +51,19 @@ friday-tony-stark-demo/
 ├── agent_friday.py     # LiveKit voice agent script (WebRTC speech agent)
 ├── start.bat           # Unified launcher script
 ├── .env                # App API credentials and defaults
-└── static/             # Web Client Frontend (HUD Interface)
-    ├── index.html      # Stark HUD Interface and settings dropdowns
-    ├── style.css       # Aesthetics and animations
-    └── app.js          # Speech synthesis engine and diagnostics handler
+├── friday.db           # SQLite local database file (ignored by Git)
+│
+└── friday/             # Core Package
+    ├── database.py     # Database schema, init, and CRUD helper functions
+    ├── config.py       # App settings and environment variables
+    │
+    └── tools/          # MCP Tools
+        ├── __init__.py # Tool registrations loader
+        ├── web.py      # Search web, fetch URL, get world news, open world monitor
+        ├── system.py   # Get current time, get system info
+        ├── utils.py    # Formatting JSON, word count helper
+        ├── memory.py   # save_user_memory, list_user_memories, delete_user_memory
+        └── systems.py  # open_application, search_local_files, get_active_processes, get_network_connections
 ```
 
 ---
