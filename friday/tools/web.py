@@ -27,7 +27,7 @@ FINANCE_SEED_FEEDS = [
 async def fetch_and_parse_feed(client, url):
     """Helper function to handle a single feed request and parse its XML."""
     try:
-        response = await client.get(url, headers={'User-Agent': 'Friday-AI/1.0'}, timeout=5.0)
+        response = await client.get(url, headers={'User-Agent': 'Friday-AI/1.0'}, timeout=2.5)
         if response.status_code != 200:
             return []
 
