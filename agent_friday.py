@@ -306,10 +306,6 @@ class FridayAgent(Agent):
 
     async def on_enter(self) -> None:
         """Greet the user based on the current time of day."""
-        import asyncio
-        logger.info("FRIDAY: Waiting 15 seconds before greeting to ensure browser interface is fully loaded...")
-        await asyncio.sleep(15)
-
         from datetime import datetime
         hour = datetime.now().hour  # Local host system hour
 
