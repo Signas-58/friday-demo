@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv",
     "fastapi",
     "uvicorn",
+    "beautifulsoup4",
 ]
 
 [project.scripts]

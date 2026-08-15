@@ -117,15 +117,111 @@ def register(mcp):
     @mcp.tool()
     async def search_web(query: str) -> str:
         """Search the web for a given query and return a summary of results."""
-        return f"[stub] Search results for: {query}"
+        from bs4 import BeautifulSoup
+        import urllib.parse
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        
+        url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+                response = await client.get(url, headers=headers)
+                if response.status_code != 200:
+                    return f"Search engine returned status code {response.status_code}, boss."
+                
+                soup = BeautifulSoup(response.text, "html.parser")
+                results = []
+                
+                # Organic result elements are inside div with class 'result'
+                for result_div in soup.find_all("div", class_="result"):
+                    title_elem = result_div.find("a", class_="result__a")
+                    snippet_elem = result_div.find("a", class_="result__snippet")
+                    
+                    if not title_elem:
+                        continue
+                        
+                    title = title_elem.get_text(strip=True)
+                    href = title_elem.get("href", "")
+                    
+                    # Resolve DuckDuckGo redirect link
+                    parsed_href = urllib.parse.urlparse(href)
+                    query_params = urllib.parse.parse_qs(parsed_href.query)
+                    
+                    if "uddg" in query_params:
+                        target_url = query_params["uddg"][0]
+                    else:
+                        if href.startswith("//"):
+                            target_url = "https:" + href
+                        elif href.startswith("/"):
+                            target_url = "https://duckduckgo.com" + href
+                        else:
+                            target_url = href
+                            
+                    snippet = snippet_elem.get_text(strip=True) if snippet_elem else "No description available."
+                    
+                    results.append({
+                        "title": title,
+                        "url": target_url,
+                        "snippet": snippet
+                    })
+                    
+                    if len(results) >= 5:
+                        break
+                        
+                if not results:
+                    return f"I searched the web for '{query}', but no organic results were found, boss."
+                    
+                lines = [f"### Web Search Results for: {query}\n"]
+                for i, r in enumerate(results, 1):
+                    lines.append(f"{i}. **[{r['title']}]({r['url']})**")
+                    lines.append(f"   {r['snippet']}")
+                    lines.append(f"   Link: {r['url']}\n")
+                    
+                return "\n".join(lines)
+        except Exception as e:
+            return f"Error executing web search query: {str(e)}"
 
     @mcp.tool()
     async def fetch_url(url: str) -> str:
-        """Fetch the raw text content of a URL."""
-        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            return response.text[:4000]
+        """
+        Downloads the content of a URL and extracts clean, readable text.
+        Use this when the user wants you to read a webpage or summarize an article.
+        """
+        from bs4 import BeautifulSoup
+        
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+                response = await client.get(url, headers=headers)
+                if response.status_code != 200:
+                    return f"Failed to download webpage. Server returned status code: {response.status_code}."
+                
+                soup = BeautifulSoup(response.text, "html.parser")
+                
+                # Strip out unwanted elements
+                for element in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
+                    element.decompose()
+                    
+                # Extract clean text
+                text = soup.get_text(separator=" ")
+                
+                # Clean up whitespace gaps
+                lines = (line.strip() for line in text.splitlines())
+                chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+                cleaned_text = "\n".join(chunk for chunk in chunks if chunk)
+                
+                limit = 5000
+                if len(cleaned_text) > limit:
+                    return cleaned_text[:limit] + "\n\n[Content truncated by F.R.I.D.A.Y. due to size limits]"
+                
+                return cleaned_text
+        except Exception as e:
+            return f"Error downloading webpage content: {str(e)}"
     
     @mcp.tool()
     async def open_world_monitor() -> str:
