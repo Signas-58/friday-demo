@@ -40,6 +40,11 @@ F.R.I.D.A.Y. acts as a system administrator dashboard:
 *   **Task List Analyzer:** Parses running processes and returns a table of the heaviest memory-hogging tasks currently active.
 *   **Cyber Security Netstat Scan:** Scans system sockets and ports, outputting active `LISTENING` and `ESTABLISHED` TCP/UDP connections.
 
+### 🌍 Web Search & Article Crawling
+F.R.I.D.A.Y. has real-time internet awareness built on free, keyless protocols:
+*   **DuckDuckGo HTML Scraping:** Queries the official DuckDuckGo HTML-only endpoint to search the web without needing paid API keys or hitting query rate limits.
+*   **HTML Noise Stripping:** Downloads webpages and cleans them using `BeautifulSoup4`. It strips away scripts, styles, navigation bars, headers, footers, and sidebars, delivering pure body text (truncated to 5,000 characters) to optimize LLM reasoning and conserve context tokens.
+
 ---
 
 ## Project Structure
