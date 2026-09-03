@@ -15,7 +15,7 @@ from openai import AsyncOpenAI
 from mcp.client.session import ClientSession
 from mcp.client.sse import sse_client
 
-from friday.database import init_db, save_message, get_chat_history, clear_chat_history, get_memories_prompt
+from friday.database import init_db, save_message, get_chat_history, clear_chat_history, get_memories_prompt, get_due_reminders, mark_reminder_triggered
 
 load_dotenv()
 
@@ -77,6 +77,16 @@ If asked about the stock market, markets, stocks, or indices:
 - Keep it short: one or two sentences. Sound informed, not robotic.
 - Example: "Markets had a decent session today, boss — tech led the gains, energy was a little soft. Nothing alarming."
 - Vary the response. Do not say the same thing every time.
+
+### get_weather — Live Weather Forecast
+Fetches real-time weather, temperature, humidity, wind speeds, and forecasts for any city (defaults to Harare if unspecified).
+- Trigger phrases: "What's the weather like?", "Is it going to rain in Harare?", "How cold is it in London?", "Weather forecast".
+- Respond with a clear summary including temperature, conditions, wind, and forecast high/lows.
+
+### schedule_reminder / list_reminders / delete_reminder — Scheduled Timers & Reminders
+Schedules, lists, or cancels persistent user reminders backed by SQLite.
+- Trigger phrases: "Remind me in 10 minutes to...", "Set a reminder for 14:30 to...", "What are my active reminders?", "Cancel reminder #2".
+- When scheduling, calculate the delay in minutes or target time and call `schedule_reminder`. Confirm to the user calmly that the reminder has been set.
 
 ---
 
@@ -236,7 +246,27 @@ async def lifespan(app: FastAPI):
     # Fire and wait for connection
     await connect_mcp()
     
+    # Start background scheduler for due reminders
+    async def reminder_scheduler():
+        while True:
+            try:
+                await asyncio.sleep(10)
+                due = get_due_reminders()
+                for r in due:
+                    msg = f"⏰ REMINDER: {r['message']}"
+                    save_message("assistant", msg)
+                    mark_reminder_triggered(r["id"])
+                    print(f"[F.R.I.D.A.Y. Scheduler] Triggered reminder #{r['id']}: {r['message']}")
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                print(f"[F.R.I.D.A.Y. Scheduler] Error: {e}")
+
+    reminder_task = asyncio.create_task(reminder_scheduler())
+    
     yield
+    
+    reminder_task.cancel()
     
     # Cleanup connection contexts
     if app.state.mcp_connected:

@@ -45,6 +45,11 @@ F.R.I.D.A.Y. has real-time internet awareness built on free, keyless protocols:
 *   **DuckDuckGo HTML Scraping:** Queries the official DuckDuckGo HTML-only endpoint to search the web without needing paid API keys or hitting query rate limits.
 *   **HTML Noise Stripping:** Downloads webpages and cleans them using `BeautifulSoup4`. It strips away scripts, styles, navigation bars, headers, footers, and sidebars, delivering pure body text (truncated to 5,000 characters) to optimize LLM reasoning and conserve context tokens.
 
+### 🌤️ Live Weather Intelligence & ⏰ Scheduled Reminders
+F.R.I.D.A.Y. provides live meteorological reports and personal time management:
+*   **Open-Meteo Weather Reports:** Resolves city names (e.g. *Harare*, *London*, *New York*) to lat/lon coordinates and returns current temperature, apparent temperature, humidity, wind speeds, WMO condition emojis (☀️, ⛅, 🌧️, 🌩️), and daily high/low forecasts via 100% free, keyless Open-Meteo APIs.
+*   **Persistent SQLite Reminders:** Schedule relative timers (e.g., *"remind me in 15 minutes to check server logs"*) or exact clock times. An async background task in `web_friday.py` monitors due reminders every 10 seconds and automatically pushes notification alerts into the HUD chat log.
+
 ---
 
 ## Project Structure
@@ -68,7 +73,9 @@ friday-tony-stark-demo/
         ├── system.py   # Get current time, get system info
         ├── utils.py    # Formatting JSON, word count helper
         ├── memory.py   # save_user_memory, list_user_memories, delete_user_memory
-        └── systems.py  # open_application, search_local_files, get_active_processes, get_network_connections
+        ├── systems.py  # open_application, search_local_files, get_active_processes, get_network_connections
+        ├── weather.py  # Open-Meteo keyless live weather reports
+        └── reminders.py# schedule_reminder, list_reminders, delete_reminder
 ```
 
 ---

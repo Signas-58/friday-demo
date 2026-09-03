@@ -29,6 +29,15 @@ def init_db():
                 timestamp TEXT DEFAULT (datetime('now', 'localtime'))
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                message TEXT NOT NULL,
+                remind_at TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                created_at TEXT DEFAULT (datetime('now', 'localtime'))
+            )
+        """)
         conn.commit()
 
 def save_message(role: str, content: str, tool_call_id: str = None, name: str = None):
@@ -110,3 +119,46 @@ def get_memories_prompt() -> str:
     for m in memories:
         lines.append(f"- ID {m['id']} | Category: {m['key']} | Fact: {m['fact']}")
     return "\n".join(lines)
+
+def save_reminder(message: str, remind_at_iso: str) -> int:
+    """Create a new pending reminder."""
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "INSERT INTO reminders (message, remind_at, status) VALUES (?, ?, 'pending')",
+            (message, remind_at_iso)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+def get_due_reminders() -> list:
+    """Retrieve all pending reminders whose remind_at time is due."""
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "SELECT id, message, remind_at FROM reminders WHERE status = 'pending' AND datetime(remind_at) <= datetime('now', 'localtime')"
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+def mark_reminder_triggered(reminder_id: int):
+    """Mark a reminder as triggered."""
+    with get_db_connection() as conn:
+        conn.execute("UPDATE reminders SET status = 'triggered' WHERE id = ?", (reminder_id,))
+        conn.commit()
+
+def list_pending_reminders_db() -> list:
+    """Retrieve all pending reminders."""
+    init_db()
+    with get_db_connection() as conn:
+        cursor = conn.execute(
+            "SELECT id, message, remind_at, created_at FROM reminders WHERE status = 'pending' ORDER BY remind_at ASC"
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+def delete_reminder_db(reminder_id: int) -> bool:
+    """Cancel / delete a reminder by id."""
+    with get_db_connection() as conn:
+        cursor = conn.execute("DELETE FROM reminders WHERE id = ?", (reminder_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+
