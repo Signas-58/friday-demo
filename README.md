@@ -50,6 +50,11 @@ F.R.I.D.A.Y. provides live meteorological reports and personal time management:
 *   **Open-Meteo Weather Reports:** Resolves city names (e.g. *Harare*, *London*, *New York*) to lat/lon coordinates and returns current temperature, apparent temperature, humidity, wind speeds, WMO condition emojis (☀️, ⛅, 🌧️, 🌩️), and daily high/low forecasts via 100% free, keyless Open-Meteo APIs.
 *   **Persistent SQLite Reminders:** Schedule relative timers (e.g., *"remind me in 15 minutes to check server logs"*) or exact clock times. An async background task in `web_friday.py` monitors due reminders every 10 seconds and automatically pushes notification alerts into the HUD chat log.
 
+### 🔊 Stark HUD Web Audio Synthesizer Engine
+Authentic Iron Man HUD audio feedback powered by Web Audio API synthesis:
+*   **Pure Synthesized Audio:** Zero-latency metallic activation chimes, deactivation sweeps, thinking pulses, vocal response notifications, error buzzers, and tactile click feedback without relying on external MP3 downloads.
+*   **Audio SFX Mute Switch:** Easily toggle audio sound effects on or off using the **Audio Effects (SFX)** setting switch in the Voice Core panel.
+
 ---
 
 ## Project Structure
