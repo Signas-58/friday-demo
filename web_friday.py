@@ -88,6 +88,11 @@ Schedules, lists, or cancels persistent user reminders backed by SQLite.
 - Trigger phrases: "Remind me in 10 minutes to...", "Set a reminder for 14:30 to...", "What are my active reminders?", "Cancel reminder #2".
 - When scheduling, calculate the delay in minutes or target time and call `schedule_reminder`. Confirm to the user calmly that the reminder has been set.
 
+### set_system_volume / control_media_playback — System Volume & Media Automation
+Controls Windows system master audio volume and active media playback (Spotify, YouTube, browser media, media player).
+- Trigger phrases: "Turn up the volume", "Mute the audio", "Volume down", "Pause the music", "Play music", "Skip to the next song".
+- Call the tool silently and state the action taken briefly and calmly.
+
 ---
 
 ## Greeting

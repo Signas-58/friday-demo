@@ -55,6 +55,11 @@ Authentic Iron Man HUD audio feedback powered by Web Audio API synthesis:
 *   **Pure Synthesized Audio:** Zero-latency metallic activation chimes, deactivation sweeps, thinking pulses, vocal response notifications, error buzzers, and tactile click feedback without relying on external MP3 downloads.
 *   **Audio SFX Mute Switch:** Easily toggle audio sound effects on or off using the **Audio Effects (SFX)** setting switch in the Voice Core panel.
 
+### 🎛️ System Volume & Media Automation
+F.R.I.D.A.Y. provides hands-free Windows host audio and playback control:
+*   **Native Windows User32 Key Controls:** Adjust system volume up, down, mute, or unmute instantly using native Windows `User32` Virtual Key events (`VK_VOLUME_UP`, `VK_VOLUME_DOWN`, `VK_VOLUME_MUTE`).
+*   **Universal Media Playback:** Voice commands like *"pause music"*, *"play media"*, or *"skip to the next track"* send native media signals (`VK_MEDIA_PLAY_PAUSE`, `VK_MEDIA_NEXT_TRACK`, `VK_MEDIA_PREV_TRACK`) across Spotify, YouTube, Chrome/Edge audio, and Windows Media Player.
+
 ---
 
 ## Project Structure
@@ -80,7 +85,8 @@ friday-tony-stark-demo/
         ├── memory.py   # save_user_memory, list_user_memories, delete_user_memory
         ├── systems.py  # open_application, search_local_files, get_active_processes, get_network_connections
         ├── weather.py  # Open-Meteo keyless live weather reports
-        └── reminders.py# schedule_reminder, list_reminders, delete_reminder
+        ├── reminders.py# schedule_reminder, list_reminders, delete_reminder
+        └── media.py    # set_system_volume, control_media_playback
 ```
 
 ---
