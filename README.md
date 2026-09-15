@@ -60,6 +60,11 @@ F.R.I.D.A.Y. provides hands-free Windows host audio and playback control:
 *   **Native Windows User32 Key Controls:** Adjust system volume up, down, mute, or unmute instantly using native Windows `User32` Virtual Key events (`VK_VOLUME_UP`, `VK_VOLUME_DOWN`, `VK_VOLUME_MUTE`).
 *   **Universal Media Playback:** Voice commands like *"pause music"*, *"play media"*, or *"skip to the next track"* send native media signals (`VK_MEDIA_PLAY_PAUSE`, `VK_MEDIA_NEXT_TRACK`, `VK_MEDIA_PREV_TRACK`) across Spotify, YouTube, Chrome/Edge audio, and Windows Media Player.
 
+### 🔀 Real-Time Currency & Exchange Rate Engine
+Financial conversion awareness across 150+ currencies using keyless open APIs:
+*   **Open Rate Endpoints:** Queries `open.er-api.com` and `api.frankfurter.app` with zero API keys or rate limit blocks to return live exchange rates and calculated totals.
+*   **Multi-Currency Support:** Convert between global fiat currencies (USD, ZAR, EUR, GBP, AUD, CAD, JPY, CNY) and cryptocurrencies (BTC, ETH).
+
 ---
 
 ## Project Structure
@@ -86,7 +91,8 @@ friday-tony-stark-demo/
         ├── systems.py  # open_application, search_local_files, get_active_processes, get_network_connections
         ├── weather.py  # Open-Meteo keyless live weather reports
         ├── reminders.py# schedule_reminder, list_reminders, delete_reminder
-        └── media.py    # set_system_volume, control_media_playback
+        ├── media.py    # set_system_volume, control_media_playback
+        └── currency.py # convert_currency real-time exchange engine
 ```
 
 ---

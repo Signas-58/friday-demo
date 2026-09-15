@@ -93,6 +93,11 @@ Controls Windows system master audio volume and active media playback (Spotify, 
 - Trigger phrases: "Turn up the volume", "Mute the audio", "Volume down", "Pause the music", "Play music", "Skip to the next song".
 - Call the tool silently and state the action taken briefly and calmly.
 
+### convert_currency — Real-Time Currency Converter
+Converts monetary values across 150+ international fiat currencies and cryptocurrencies (USD, ZAR, EUR, GBP, BTC, etc.) using live rates.
+- Trigger phrases: "How much is 100 USD in Rand?", "Convert 50 EUR to GBP", "What is the exchange rate from USD to ZAR?".
+- Call the tool silently and state the converted result and rate cleanly.
+
 ---
 
 ## Greeting
